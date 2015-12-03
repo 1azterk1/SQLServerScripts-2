@@ -1,5 +1,8 @@
 use msdb
 go
+/*
+drop function fn_get_schedule_description
+*/
 create function fn_get_schedule_description(@schedule_id int)
 returns nvarchar(4000)
 as
@@ -219,5 +222,6 @@ FROM msdb.dbo.sysschedules
 where schedule_id = @schedule_id
 return @schedule_description
 end
+
 
 
