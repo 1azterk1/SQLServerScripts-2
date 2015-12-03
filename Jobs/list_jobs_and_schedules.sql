@@ -1,3 +1,4 @@
+/* Uses fn_get_schedule_description to create human readable schedule */
 use master
 go
 select 
