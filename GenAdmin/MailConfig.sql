@@ -1,6 +1,6 @@
 :setvar servername "sending_host_name"
 :setvar client_email_suffix "client.com"
-:setvar smtp_server_name "smtpserver"
+:setvar smtp_server_name "192.168.1.1"
 :setvar smtp_port "25"
 
 exec sp_configure 'show advanced options', 1;
