@@ -1,7 +1,12 @@
 /* Statistical analysis of missing indexes */
+/* Tested on SQL version 10.0+ */
+/* Limit data to a single database if necessary */
 declare @dbname nvarchar(255) = NULL;
 
-/* IQR Factors */
+/* IQR Factors 
+Decrease the Interquartile range factor to squeeze the IQR
+This will generate more outliers in the HIGH and LOW range
+*/
 declare @if decimal(18,2) = 1.5;
 declare @unique_compiles_if decimal(18,2) = @if;
 declare @user_seeks_if decimal(18,2) = @if;
@@ -23,7 +28,12 @@ declare
 , @avg_total_user_cost varchar(10)
 , @avg_user_impact varchar(10)
 
-/* Definitions */
+/* Definitions 
+Set the range indicators for outliers to find.  
+Change the IQR factor to produce more or fewer results.
+(Increase IQR to limit outliers -- more "normal" values
+or decrease IQR it increase outliers -- fewer "normal" values)
+*/
 select 
   @unique_compiles = @high
 , @user_seeks = @high
