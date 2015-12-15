@@ -7,7 +7,7 @@ declare @unique_compiles_if decimal(18,2) = @if;
 declare @user_seeks_if decimal(18,2) = @if;
 declare @user_scans_if decimal(18,2) = @if;
 declare @avg_total_user_cost_if decimal(18,2) = @if;
-declare @avg_user_impact_if decimal(18,2) = .25;
+declare @avg_user_impact_if decimal(18,2) = .025;
 
 declare 
 	  @high varchar(10) 
