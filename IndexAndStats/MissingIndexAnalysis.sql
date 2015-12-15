@@ -1,4 +1,6 @@
 /* Statistical analysis of missing indexes */
+declare @dbname nvarchar(255) = NULL;
+
 declare @range_factor decimal(18,2) = 1.5;
 declare 
 	  @high varchar(10) 
@@ -17,9 +19,9 @@ declare
 /* Definitions */
 select 
   @unique_compiles = @ignore
-, @user_seeks = @high
+, @user_seeks = @ignore
 , @user_scans = @ignore
-, @avg_total_user_cost = @high
+, @avg_total_user_cost = @ignore
 , @avg_user_impact = @ignore
 ;
 
@@ -31,7 +33,17 @@ with base as (
 	, avg_total_user_cost
 	, avg_user_impact
 	, group_handle
-	from sys.dm_db_missing_index_group_stats
+	from sys.dm_db_missing_index_group_stats s
+
+	where exists (select 1 
+	from sys.dm_db_missing_index_groups g 
+	join sys.dm_db_missing_index_details d on g.index_handle = d.index_handle
+	where s.group_handle = g.index_group_handle
+	and d.database_id = db_id(@dbname)
+	union 
+	select 1 from (select @dbname as dbname) x where x.dbname is null
+	)
+
 )
 
 , q as (
@@ -100,23 +112,23 @@ select * from base cross apply iqr
 	select group_handle 
 	, case 
 		when unique_compiles > med_unique_compiles + iqr_unique_compiles then 'HIGH'
-		when unique_compiles < med_unique_compiles + iqr_unique_compiles then 'LOW'
+		when unique_compiles < med_unique_compiles - iqr_unique_compiles then 'LOW'
 		else 'NORMAL' end as unique_compiles_n
 	, case 
 		when user_seeks > med_user_seeks + iqr_user_seeks then 'HIGH'
-		when user_seeks < med_user_seeks + iqr_user_seeks then 'LOW'
+		when user_seeks < med_user_seeks - iqr_user_seeks then 'LOW'
 		else 'NORMAL' end as user_seeks_n
 	, case 
 		when user_scans > med_user_scans + iqr_user_scans then 'HIGH'
-		when user_scans < med_user_scans + iqr_user_scans then 'LOW'
+		when user_scans < med_user_scans - iqr_user_scans then 'LOW'
 		else 'NORMAL' end as user_scans_n
 	, case 
 		when avg_total_user_cost > med_avg_total_user_cost + iqr_avg_total_user_cost then 'HIGH'
-		when avg_total_user_cost < med_avg_total_user_cost + iqr_avg_total_user_cost then 'LOW'
+		when avg_total_user_cost < med_avg_total_user_cost - iqr_avg_total_user_cost then 'LOW'
 		else 'NORMAL' end as avg_total_user_cost_n
 	, case 
 		when avg_user_impact > med_avg_user_impact + iqr_avg_user_impact then 'HIGH'
-		when avg_user_impact < med_avg_user_impact + iqr_avg_user_impact then 'LOW'
+		when avg_user_impact < med_avg_user_impact - iqr_avg_user_impact then 'LOW'
 		else 'NORMAL' end as avg_user_impact_n
 
 
@@ -133,7 +145,7 @@ select * from base cross apply iqr
 	AND avg_user_impact_n = coalesce(@avg_user_impact, avg_user_impact_n)
 )
 
-select group_handle, g.index_handle
+select b.group_handle, g.index_handle
 , db_name(d.database_id) as database_name
 , OBJECT_NAME(d.object_id, d.database_id) as object_name
 , d.equality_columns
@@ -145,8 +157,14 @@ select group_handle, g.index_handle
 , f.user_scans_n
 , f.avg_total_user_cost_n
 , f.avg_user_impact_n
+, b.unique_compiles
+, b.user_seeks
+, b.user_scans
+, b.avg_total_user_cost
+, b.avg_user_impact
 from filter f
 join sys.dm_db_missing_index_groups g on f.group_handle = g.index_group_handle
-join sys.dm_db_missing_index_details d on g.index_handle = d.index_handle;
+join sys.dm_db_missing_index_details d on g.index_handle = d.index_handle
+join base b on f.group_handle = b.group_handle;
 
 --select * from sys.dm_db_missing_index_columns(@handle int)
