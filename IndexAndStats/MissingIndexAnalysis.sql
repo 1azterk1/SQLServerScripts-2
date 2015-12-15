@@ -1,7 +1,14 @@
 /* Statistical analysis of missing indexes */
 declare @dbname nvarchar(255) = NULL;
 
-declare @range_factor decimal(18,2) = 1.5;
+/* IQR Factors */
+declare @if decimal(18,2) = 1.5;
+declare @unique_compiles_if decimal(18,2) = @if;
+declare @user_seeks_if decimal(18,2) = @if;
+declare @user_scans_if decimal(18,2) = @if;
+declare @avg_total_user_cost_if decimal(18,2) = @if;
+declare @avg_user_impact_if decimal(18,2) = .25;
+
 declare 
 	  @high varchar(10) 
 	, @normal varchar(10)
@@ -18,11 +25,11 @@ declare
 
 /* Definitions */
 select 
-  @unique_compiles = @ignore
-, @user_seeks = @ignore
+  @unique_compiles = @high
+, @user_seeks = @high
 , @user_scans = @ignore
 , @avg_total_user_cost = @ignore
-, @avg_user_impact = @ignore
+, @avg_user_impact = @high
 ;
 
 with base as (
@@ -96,11 +103,11 @@ with base as (
 )
 , iqr as (
 	select 
-	  (q3_unique_compiles - q1_unique_compiles) * @range_factor as iqr_unique_compiles
-	, (q3_user_seeks - q1_user_seeks) * @range_factor as iqr_user_seeks
-	, (q3_user_scans - q1_user_scans) * @range_factor as iqr_user_scans
-	, (q3_avg_total_user_cost - q1_avg_total_user_cost) * @range_factor as iqr_avg_total_user_cost
-	, (q3_avg_user_impact - q1_avg_user_impact) * @range_factor as iqr_avg_user_impact
+	  (q3_unique_compiles - q1_unique_compiles) * @unique_compiles_if as iqr_unique_compiles
+	, (q3_user_seeks - q1_user_seeks) * @user_seeks_if as iqr_user_seeks
+	, (q3_user_scans - q1_user_scans) * @user_scans_if as iqr_user_scans
+	, (q3_avg_total_user_cost - q1_avg_total_user_cost) * @avg_total_user_cost_if as iqr_avg_total_user_cost
+	, (q3_avg_user_impact - q1_avg_user_impact) * @avg_user_impact_if as iqr_avg_user_impact
 	, *
 	from ranges
 )
