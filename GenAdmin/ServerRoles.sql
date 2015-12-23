@@ -9,8 +9,8 @@ declare @cmd varchar(max)
 
 /* exec msdb..sysmail_help_profile_sp */
 set @profile = 'SQLExec'
-set @cust = 'EQT'
-set @rcp = 'gklundt@rdx.com'
+set @cust = '<cust>'
+set @rcp = '<recpt>'
 set @bdy = 'Here is your report!'
 
 set @cmd = 'set nocount on;
