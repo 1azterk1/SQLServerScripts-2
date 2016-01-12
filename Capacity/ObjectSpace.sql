@@ -19,3 +19,5 @@ join sys.indexes i on o.object_id = i.object_id
 join sys.partitions p on i.object_id = p.object_id and i.index_id = p.index_id
 join sys.allocation_units au on (au.container_id = p.partition_id and au.type in (2)) or (au.container_id = p.hobt_id and au.type in (1,3))
 join sys.data_spaces ds on au.data_space_id = ds.data_space_id
+where s.name <> 'sys'
+order by au.total_pages desc
