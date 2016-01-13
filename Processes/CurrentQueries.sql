@@ -5,6 +5,7 @@ select
 , DATEDIFF(mi, r.start_time, GETDATE())%60 AS duration_minutes
 , DATEDIFF(ss, r.start_time, GETDATE())%60 AS duration_seconds
 , r.reads 
+, r.cpu_time
 , r.writes
 , r.logical_reads
 , r.granted_query_memory
