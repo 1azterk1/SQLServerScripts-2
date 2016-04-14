@@ -1,6 +1,6 @@
 declare 
   @p1 int /* Error log sequence number where 0 is latest */
-, @p2 int /* Error log type (0:errorlog; 1:agent log) */
+, @p2 int /* Error log type (1:errorlog; 2:agent log) */
 , @p3 nvarchar(4000) /* search term 1 */
 , @p4 nvarchar(4000) /* search term 2 */
 , @p5 datetime /* Start time */ 
@@ -9,9 +9,9 @@ declare
 
 select @p1 = 0
 , @p2 = 1
-, @p3 = 'I/O'
+, @p3 = null
 , @p4 = null
-, @p5 = dateadd(dd, -5, GETDATE())
+, @p5 = dateadd(hh, -5, GETDATE())
 , @p6 = GETDATE()
 , @p7 = 'DESC';
 
